@@ -79,7 +79,8 @@ fastsim::TrackerSimHitProducer::TrackerSimHitProducer(const std::string & name,c
     , simHitContainer_(new edm::PSimHitContainer)
 {
   edm::Service<TFileService> fs;
-  hitsZPerp = fs->make<TH2F>("simhitsZPerp","",1280,-320,320,520,0,130);
+  //  hitsZPerp = fs->make<TH2F>("simhitsZPerp","",1280,-320,320,520,0,130);
+  hitsZPerp = fs->make<TH2F>("simhitsZPerp","",600,-60,60,600,-60,60);
   hitsXY = fs->make<TH2F>("simhitsXY","",750,-130,130,750,-130,130);
   lochitsZPerp = fs->make<TH2F>("local_simhitsZPerp","",1280,-320,320,520,0,130);
 }
@@ -249,8 +250,12 @@ std::pair<double, PSimHit*> fastsim::TrackerSimHitProducer::createHitOnDetector(
 
     GlobalPoint hitPos(detector.surface().toGlobal(localPosition));
     //std::cout<<hitPos.x()<<","<<hitPos.y()<<std::endl;
-    if( subdet == 1){
-    hitsZPerp->Fill(hitPos.z(),std::sqrt(hitPos.x()*hitPos.x()+hitPos.y()*hitPos.y()));
+    double r = std::sqrt(hitPos.x()*hitPos.x()+hitPos.y()*hitPos.y());
+    if( subdet == 1 || subdet == 2){
+      if(hitPos.phi()<0)
+	hitsZPerp->Fill(hitPos.z(),-r);
+      else 
+	hitsZPerp->Fill(hitPos.z(),r);
     hitsXY->Fill(hitPos.x(),hitPos.y());
     lochitsZPerp->Fill(localPosition.z(),std::sqrt(localPosition.x()*localPosition.x()+localPosition.y()*localPosition.y()));
     }
