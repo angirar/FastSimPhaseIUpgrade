@@ -20,7 +20,7 @@ process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 from Configuration.AlCa.GlobalTag import GlobalTag
 #process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')          
-process.GlobalTag = GlobalTag(process.GlobalTag, '90X_upgrade2017_design_IdealBS_v0', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, '90X_upgrade2017_design_IdealBS_v15', '')
 
 # read generator event from file
 process.source = cms.Source("PoolSource",
