@@ -71,11 +71,10 @@ void
 	// get simHit and recHit
 	const PSimHit & simHit = (*simHits)[simHitCounter];
 	const FastTrackerRecHitRef & recHit = (*simHit2RecHitMap)[simHitCounter];
-
 	// add recHit to latest combination
 	if(!recHit.isNull())
 	    currentCombination.push_back(recHit);
-
+	
 	// if simTrackId is about to change, add combination
 	if(simHits->size()-simHitCounter == 1 || simHit.trackId() != (*simHits)[simHitCounter+1].trackId() ){
 	    // combination must have sufficient hits

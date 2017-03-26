@@ -3,7 +3,7 @@ import FWCore.ParameterSet.Config as cms
 from Configuration.StandardSequences.Eras import eras
 
 #process = cms.Process("DEMO",eras.Run2_2016,eras.fastSim)
-process = cms.Process("DEMO",eras.Run2_2017,eras.fastSim)
+process = cms.Process("DEMO",eras.Run2_2016,eras.fastSim)
 
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(2000)
@@ -97,8 +97,7 @@ process.DQMoutput_step = cms.EndPath(process.DQMoutput)
 
 # Schedule definition
 #process.schedule = cms.Schedule(process.simulation_step,process.FEVTDEBUGHLToutput_step,process.DQMoutput_step)
-process.schedule = cms.Schedule(process.simulation_step)
-#,process.reconstruction_befmix_step,process.FEVTDEBUGHLToutput_step,process.DQMoutput_step)
+process.schedule = cms.Schedule(process.simulation_step,process.reconstruction_befmix_step,process.FEVTDEBUGHLToutput_step,process.DQMoutput_step)
 
 # debugging options
 # debug messages will only be printed for packages compiled with following command
