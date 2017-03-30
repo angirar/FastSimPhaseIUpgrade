@@ -75,9 +75,9 @@ class TrackingRecHitProducer:
 TrackingRecHitProducer::TrackingRecHitProducer(const edm::ParameterSet& config)
 {
   edm::Service<TFileService> fs;
-  hitsRZfull = fs->make<TH2F>("rechitsZPerpfull","",1280,-320,320,1040,-130,130);
-  hitsRZ = fs->make<TH2F>("rechitsZPerp","",600,-60,60,600,-60,60);
-  hitsxy = fs->make<TH2F>("rechitsXY","",750,-130,130,750,-130,130);
+  hitsRZfull = fs->make<TH2F>("producerrechitsZPerpfull","",1280,-320,320,1040,-130,130);
+  hitsRZ = fs->make<TH2F>("producerrechitsZPerp","",600,-60,60,600,-60,60);
+  hitsxy = fs->make<TH2F>("producerrechitsXY","",1500,-250,250,750,-130,130);
     edm::ConsumesCollector consumeCollector = consumesCollector();
     const std::vector<edm::ParameterSet>& pluginConfigs = config.getParameter<std::vector<edm::ParameterSet>>("plugins");
 

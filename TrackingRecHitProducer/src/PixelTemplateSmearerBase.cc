@@ -18,22 +18,30 @@
 #include "Geometry/CommonDetUnit/interface/GeomDetUnit.h"
 #include "Geometry/TrackerGeometryBuilder/interface/RectangularPixelTopology.h"
 #include "DataFormats/GeometryVector/interface/LocalPoint.h"
+#include "DataFormats/GeometryVector/interface/GlobalPoint.h"
 #include "DataFormats/GeometryCommonDetAlgo/interface/MeasurementPoint.h"
 
 // Famos
 #include "FastSimulation/Utilities/interface/RandomEngineAndDistribution.h"
 #include "FastSimulation/Utilities/interface/SimpleHistogramGenerator.h"
 
+#include "FWCore/ServiceRegistry/interface/Service.h"
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
+#include "FWCore/Framework/interface/MakerMacros.h"
 // STL
 
 // ROOT
 #include <TFile.h>
 #include <TH1F.h>
 #include <TH2F.h>
-
+#include <TROOT.h>
+#include <iostream>
+#include <fstream>
 
 const double microntocm = 0.0001;
-
+TH2F * rhitsRZfull;
+TH2F * rhitsRZ;
+TH2F * rhitsXY;
 
 PixelTemplateSmearerBase::PixelTemplateSmearerBase(
     const std::string& name,
@@ -42,8 +50,12 @@ PixelTemplateSmearerBase::PixelTemplateSmearerBase(
 ):
     TrackingRecHitAlgorithm(name,config,consumesCollector)
 {
-    mergeHitsOn = config.getParameter<bool>("MergeHitsOn");
-    templateId = config.getParameter<int> ( "templateId" );
+  edm::Service<TFileService> fs;
+  rhitsRZfull = fs->make<TH2F>("newrechitsZPerpfull","",1280,-320,320,1040,-130,130);
+  rhitsRZ = fs->make<TH2F>("newrechitsZPerp","",600,-60,60,600,-60,60);
+  rhitsXY = fs->make<TH2F>("newrechitsXY","",750,-130,130,750,-130,130);
+  mergeHitsOn = config.getParameter<bool>("MergeHitsOn");
+  templateId = config.getParameter<int> ( "templateId" );
 }
 
 
@@ -515,7 +527,7 @@ FastSingleTrackerRecHit PixelTemplateSmearerBase::smearHit(
         }
     }
 
-
+    unsigned int subdet = DetId(detUnit->geographicalId()).subdetId();
     //add misalignment error
     const TrackerGeomDet* misalignmentDetUnit = getMisalignedGeometry().idToDet(detUnit->geographicalId());
     const LocalError& alignmentError = misalignmentDetUnit->localAlignmentError();
@@ -669,6 +681,24 @@ FastSingleTrackerRecHit PixelTemplateSmearerBase::smearHit(
         *detUnit,
         fastTrackerRecHitType::siPixel
     );
+    //rechits histogram
+    const LocalPoint& localPoint = recHit.localPosition();
+    const GlobalPoint& globalPoint = detUnit->toGlobal(localPoint);
+    if(globalPoint.phi()<0){
+      rhitsRZfull->Fill(globalPoint.z(),-std::sqrt(globalPoint.x()*globalPoint.x()+globalPoint.y()*globalPoint.y()));
+      if( subdet==1 || subdet==2)
+	rhitsRZ->Fill(globalPoint.z(),-std::sqrt(globalPoint.x()*globalPoint.x()+globalPoint.y()*globalPoint.y()));
+    }
+    else{
+      rhitsRZfull->Fill(globalPoint.z(),std::sqrt(globalPoint.x()*globalPoint.x()+globalPoint.y()*globalPoint.y()));
+      if( subdet==1 || subdet==2)
+	rhitsRZ->Fill(globalPoint.z(),std::sqrt(globalPoint.x()*globalPoint.x()+globalPoint.y()*globalPoint.y()));
+    }
+    rhitsXY->Fill(globalPoint.x(),globalPoint.y());
+
+    /*bool rhitType = recHit.isSingle() + recHit.isMatched();
+    std::cout<<"Rechit type="<<rhitType<<std::endl;
+    */
     return recHit;
 }
 

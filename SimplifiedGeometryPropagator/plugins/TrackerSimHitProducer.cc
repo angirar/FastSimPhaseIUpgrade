@@ -82,7 +82,7 @@ fastsim::TrackerSimHitProducer::TrackerSimHitProducer(const std::string & name,c
   edm::Service<TFileService> fs;
   hitsZPerpfull = fs->make<TH2F>("simhitsZPerpfull","",1280,-320,320,1040,-130,130);
   hitsZPerp = fs->make<TH2F>("simhitsZPerp","",600,-60,60,600,-60,60);
-  hitsXY = fs->make<TH2F>("simhitsXY","",750,-130,130,750,-130,130);
+  hitsXY = fs->make<TH2F>("simhitsXY","",1500,-250,250,750,-130,130);
   lochitsZPerp = fs->make<TH2F>("local_simhitsZPerp","",1280,-320,320,520,0,130);
 }
 

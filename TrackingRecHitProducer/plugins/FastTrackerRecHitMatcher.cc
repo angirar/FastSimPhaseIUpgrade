@@ -1,6 +1,10 @@
 // system include files
 #include <memory>
-
+#include <TFile.h>
+#include <TROOT.h>
+#include <TH2.h>
+#include <iostream>
+#include <fstream>
 // framework stuff
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/stream/EDProducer.h"
@@ -23,7 +27,8 @@
 #include "Geometry/CommonDetUnit/interface/GluedGeomDet.h"
 #include "DataFormats/SiStripDetId/interface/StripSubdetector.h"
 
-
+#include "FWCore/ServiceRegistry/interface/Service.h"
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
 
 // sim stuff
 #include "SimDataFormats/TrackingHit/interface/PSimHit.h"
@@ -40,7 +45,9 @@ class FastTrackerRecHitMatcher : public edm::stream::EDProducer<>  {
     private:
     
     virtual void produce(edm::Event&, const edm::EventSetup&) override;
-
+  TH2F* rechitsRZfull;
+  TH2F* rechitsRZ;
+  TH2F* rechitsxy;
     // ---------- typedefs -----------------------------
     typedef std::pair<LocalPoint,LocalPoint>                   StripPosition; 
 
@@ -80,6 +87,10 @@ class FastTrackerRecHitMatcher : public edm::stream::EDProducer<>  {
 FastTrackerRecHitMatcher::FastTrackerRecHitMatcher(const edm::ParameterSet& iConfig)
 
 {
+  edm::Service<TFileService> fs;
+  rechitsRZfull = fs->make<TH2F>("matcherrechitsZPerpfull","",1280,-320,320,1040,-130,130);
+  rechitsRZ = fs->make<TH2F>("matcherrechitsZPerp","",600,-60,60,600,-60,60);
+  rechitsxy = fs->make<TH2F>("matcherrechitsXY","",1500,-250,250,750,-130,130);
     simHitsToken = consumes<edm::PSimHitContainer>(iConfig.getParameter<edm::InputTag>("simHits"));
     simHit2RecHitMapToken = consumes<FastTrackerRecHitRefCollection>(iConfig.getParameter<edm::InputTag>("simHit2RecHitMap"));
     
@@ -126,11 +137,29 @@ void FastTrackerRecHitMatcher::produce(edm::Event& iEvent, const edm::EventSetup
 
 	// cast
 	const FastSingleTrackerRecHit * recHit = _cast2Single(recHitRef.get());
-
+	
+	double x = recHit->globalPosition().x();
+	double y = recHit->globalPosition().y();
+	double z = recHit->globalPosition().z();
+	double phi_val = recHit->globalPosition().phi();
+	double r = std::sqrt(x*x+y*y);
+	
 	// get subdetector id
 	DetId detid = recHit->geographicalId();
 	unsigned int subdet = detid.subdetId();
 	
+	if(phi_val<0){
+	  rechitsRZfull->Fill(z,-r);
+	  if( subdet == 1 || subdet == 2)
+	    rechitsRZ->Fill(z,-r);
+	}
+	else{
+	  rechitsRZfull->Fill(z,r);
+	  if( subdet == 1 || subdet == 2)
+	    rechitsRZ->Fill(z,r);
+	}
+	rechitsxy->Fill(x,y);
+
 	// treat pixel hits
 	if(subdet <= 2){ 
 	    (*output_simHit2RecHitMap)[simHitCounter] = recHitRef;

@@ -217,12 +217,15 @@ TrackCandidateProducer::produce(edm::Event& e, const edm::EventSetup& es) {
 		    selectedRecHits.back() = selectedRecHit;
 		}
 	    }
-
+	    bool rhitType = 0;
 	    // split hits / store copies for the track candidate
 	    edm::OwnVector<TrackingRecHit> hitsForTrackCandidate;
 	    for ( unsigned index = 0; index<selectedRecHits.size(); ++index )
 	    {
-		if(splitHits)
+	      const FastTrackerRecHit & hit = *selectedRecHits[index];
+	      rhitType = hit.isSingle()+hit.isMatched()+hit.isMulti()+hit.isProjected();
+	      std::cout<<"Rechit Type="<<rhitType<<std::endl;
+	      if(splitHits)
 		{
 		    // add split hits to splitSelectedRecHits
 		    hitSplitter.split(*selectedRecHits[index],hitsForTrackCandidate,hitsAlongMomentum);

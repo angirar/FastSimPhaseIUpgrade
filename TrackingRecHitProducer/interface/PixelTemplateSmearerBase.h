@@ -44,8 +44,7 @@ class PixelTemplateSmearerBase:
         struct MergeGroup{
             std::vector<TrackingRecHitProduct::SimHitIdPair> group;
             bool smearIt;
-        };
-
+	};
     protected:
         bool mergeHitsOn; 
         std::vector< SiPixelTemplateStore > thePixelTemp_;
