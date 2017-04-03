@@ -3,6 +3,7 @@
 #include <TFile.h>
 #include <TROOT.h>
 #include <TH2.h>
+#include <TH1.h>
 #include <iostream>
 #include <fstream>
 // framework stuff
@@ -48,6 +49,8 @@ class FastTrackerRecHitMatcher : public edm::stream::EDProducer<>  {
   TH2F* rechitsRZfull;
   TH2F* rechitsRZ;
   TH2F* rechitsxy;
+  TH1F* resol[4];
+
     // ---------- typedefs -----------------------------
     typedef std::pair<LocalPoint,LocalPoint>                   StripPosition; 
 
@@ -91,6 +94,11 @@ FastTrackerRecHitMatcher::FastTrackerRecHitMatcher(const edm::ParameterSet& iCon
   rechitsRZfull = fs->make<TH2F>("matcherrechitsZPerpfull","",1280,-320,320,1040,-130,130);
   rechitsRZ = fs->make<TH2F>("matcherrechitsZPerp","",600,-60,60,600,-60,60);
   rechitsxy = fs->make<TH2F>("matcherrechitsXY","",1500,-250,250,750,-130,130);
+  resol[0] = fs->make<TH1F>("Xresol","Resolution plot b/w xpos of Simhit & Rechit",10000,-5,5);
+  resol[1] = fs->make<TH1F>("Yresol","Resolution plot b/w ypos of Simhit & Rechit",10000,-5,5);
+  resol[2] = fs->make<TH1F>("Zresol","Resolution plot b/w zpos of Simhit & Rechit",10000,-5,5);
+  resol[3] = fs->make<TH1F>("Rresol","Resolution plot b/w R of Simhit & Rechit",10000,-5,5);
+
     simHitsToken = consumes<edm::PSimHitContainer>(iConfig.getParameter<edm::InputTag>("simHits"));
     simHit2RecHitMapToken = consumes<FastTrackerRecHitRefCollection>(iConfig.getParameter<edm::InputTag>("simHit2RecHitMap"));
     
@@ -131,6 +139,19 @@ void FastTrackerRecHitMatcher::produce(edm::Event& iEvent, const edm::EventSetup
 	const PSimHit & simHit = (*simHits)[simHitCounter];
 	const FastTrackerRecHitRef & recHitRef = (*simHit2RecHitMap)[simHitCounter];
 
+	const LocalPoint& localPoint = simHit.localPosition();
+	//std::cout<<"Found localpos"<<std::endl;
+	const DetId& theDetId = simHit.detUnitId();
+	//std::cout<<"Found det ID"<<std::endl;
+	const GeomDet* theGeomDet = geometry->idToDet(theDetId);
+	//std::cout<<"Found pointer to Geom det from ID"<<std::endl;
+	const GlobalPoint& globalPoint = theGeomDet->toGlobal(localPoint);
+	
+	//simhit x,y,z
+	double simx = globalPoint.x();
+        double simy = globalPoint.y();
+        double simz = globalPoint.z();
+	double simr = globalPoint.mag();
 	// skip simHits w/o associated recHit 
 	if(recHitRef.isNull())
 	    continue;
@@ -141,6 +162,13 @@ void FastTrackerRecHitMatcher::produce(edm::Event& iEvent, const edm::EventSetup
 	double x = recHit->globalPosition().x();
 	double y = recHit->globalPosition().y();
 	double z = recHit->globalPosition().z();
+	double mag = recHit->globalPosition().mag();
+	//resolution plots
+	resol[0]->Fill(simx-x);
+	resol[1]->Fill(simy-y);
+	resol[2]->Fill(simz-z);
+	resol[3]->Fill(simr-mag);
+
 	double phi_val = recHit->globalPosition().phi();
 	double r = std::sqrt(x*x+y*y);
 	
